@@ -12,16 +12,13 @@ TOKEN = os.getenv('DISCORD_TOKEN')
 intents = discord.Intents().all()
 bot = commands.Bot(command_prefix='-', intents=intents)
 
-@bot.event
-async def on_ready():
-    print(f'Logged in as {bot.user} (ID: {bot.user.id})')
-    print('------')
-
 # Suppress noise about consule usage from errors
 youtube_dl.utils.bug_reports_message = lambda: ''
 
-ytdl_format_options = {
+YTDL_FORMAT_OPTIONS = {
     'format': 'bestaudio/best',
+    'extractaudio': True,
+    'audioformat': 'mp3',
     'restrictfilenames': True,
     'noplaylist': True,
     'nocheckcertificate': True,
@@ -33,7 +30,7 @@ ytdl_format_options = {
     'source_address': '0.0.0.0' 
 }
 
-ffmpeg_options = {
+FFMPEG_OPTIONS = {
     'options': '-vn'
 }
 
@@ -123,5 +120,10 @@ async def stop(ctx):
         voice_client.stop()
     else:
         await ctx.send("Vinyl isn't playing anything")
+
+@bot.event
+async def on_ready():
+    print(f'Logged in as {bot.user} (ID: {bot.user.id})')
+    print('------')
 
 bot.run(TOKEN)
