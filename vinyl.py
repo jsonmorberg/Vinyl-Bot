@@ -62,13 +62,15 @@ class Vinyl(commands.Cog):
             return
         else:
             channel = ctx.message.author.voice.channel
+        await ctx.message.add_reaction('☑️')
         await channel.connect()
-
+        
     @commands.command(name='leave', aliases=['l'], help='Make Vinyl leave the voice channel')
     async def _leave(self, ctx):
         voice_client = ctx.message.guild.voice_client
         if voice_client is not None:
             await voice_client.disconnect()
+            await ctx.message.add_reaction('☑️')
         else:
             await ctx.send("Vinyl is not connected to a voice channel")
 
@@ -82,7 +84,7 @@ class Vinyl(commands.Cog):
                 file, title = await YTDLSource.from_url(url, loop=bot.loop)
                 voice_client.play(discord.FFmpegPCMAudio(source=file, **FFMPEG_OPTIONS))
             
-        
+            await ctx.message.add_reaction('▶️')
             await ctx.send('**Now Playing:** {}'.format(title))
             os.remove(file)
     
@@ -98,6 +100,7 @@ class Vinyl(commands.Cog):
             await ctx.sent("Vinyl is not connected to a voice channel currently")
         elif voice_client.is_playing():
             voice_client.pause()
+            await ctx.message.add_reaction('⏸️')
         else:
             await ctx.send("Vinyl isn't playing anything")
 
@@ -109,6 +112,7 @@ class Vinyl(commands.Cog):
             await ctx.sent("Vinyl is not connected to a voice channel currently")
         elif voice_client.is_paused():
             voice_client.resume()
+            await ctx.message.add_reaction('▶️')
         else:
             await ctx.send("Vinyl isn't paused currently")
 
@@ -120,6 +124,7 @@ class Vinyl(commands.Cog):
             await ctx.sent("Vinyl is not connected to a voice channel currently")
         elif voice_client.is_playing():
             voice_client.stop()
+            await ctx.message.add_reaction('⏹️')
         else:
             await ctx.send("Vinyl isn't playing anything")
 
