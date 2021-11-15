@@ -54,15 +54,15 @@ class AudioSource(discord.PCMVolumeTransformer):
         data = await loop.run_in_executor(None, partial)
 
         #process again for first entry in search
-        web_data = None
+        entry_data = None
         if 'entries' in data:
-            while web_data is None:
+            while entry_data is None:
                 try:
-                    web_data = data['entries'].pop(0)
+                    entry_data = data['entries'].pop(0)
                 except IndexError:
                     raise Exception("No result that matches '{}'".format(search))
         else:
-            web_data = data
+            entry_data = data
 
         if processed_data is None:
                     raise Exception("No result that matches '{}'".format(search))

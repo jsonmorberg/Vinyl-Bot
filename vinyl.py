@@ -21,7 +21,7 @@ class Vinyl(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name='join', aliases=['j'], help='Ask Vinyl to join the voice channel')
+    @commands.command(name='join', aliases=['j'], help='Ask Vinyl to join your voice channel')
     async def _join(self, ctx):
         if not ctx.message.author.voice:
             await ctx.send("{} is not connected to a voice channel".format(ctx.message.author.name))
@@ -31,7 +31,7 @@ class Vinyl(commands.Cog):
         await ctx.message.add_reaction('☑️')
         await channel.connect()
         
-    @commands.command(name='leave', aliases=['l'], help='Make Vinyl leave the voice channel')
+    @commands.command(name='leave', aliases=['l'], help='Make Vinyl leave your voice channel')
     async def _leave(self, ctx):
         voice_client = ctx.message.guild.voice_client
         if voice_client is not None:
@@ -40,7 +40,7 @@ class Vinyl(commands.Cog):
         else:
             await ctx.send("Vinyl is not connected to a voice channel")
 
-    @commands.command(name='play', aliases=['p'], help="Play audio from YouTube")
+    @commands.command(name='play', aliases=['p'], help="Play")
     async def _play(self, ctx, *, search):
         #try:
         server = ctx.message.guild
