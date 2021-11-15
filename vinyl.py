@@ -41,13 +41,13 @@ class Vinyl(commands.Cog):
             await ctx.send("Vinyl is not connected to a voice channel")
 
     @commands.command(name='play', aliases=['p'], help="Play audio from YouTube")
-    async def _play(self, ctx, url):
+    async def _play(self, ctx, *, search):
         #try:
         server = ctx.message.guild
         voice_client = server.voice_client
 
         async with ctx.typing():
-            file, title = await AudioSource.from_url(url, loop=bot.loop)
+            file, title = await AudioSource.from_url(search, loop=bot.loop)
             voice_client.play(discord.FFmpegPCMAudio(source=file, **FFMPEG_OPTIONS))
         
         await ctx.message.add_reaction('▶️')
