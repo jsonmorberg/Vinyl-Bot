@@ -9,10 +9,6 @@ from discord.ext import commands
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 
-FFMPEG_OPTIONS = {
-    'options': '-vn',
-}
-
 # Suppress unnecessary bug reports
 yt_dlp.utils.bug_reports_message = lambda: ''
 
@@ -42,20 +38,18 @@ class Vinyl(commands.Cog):
 
     @commands.command(name='play', aliases=['p'], help="Play")
     async def _play(self, ctx, *, search):
-        #try:
-        server = ctx.message.guild
-        voice_client = server.voice_client
+        try:
+            server = ctx.message.guild
+            voice_client = server.voice_client
 
-        async with ctx.typing():
-            file, title = await AudioSource.from_url(search, loop=bot.loop)
-            voice_client.play(discord.FFmpegPCMAudio(source=file, **FFMPEG_OPTIONS))
-        
-        await ctx.message.add_reaction('▶️')
-        await ctx.send('**Now Playing:** {}'.format(title))
-        os.remove(file)
-    
-        #except:
-            #await ctx.send("Vinyl is not connected to a voice channel currently")
+            async with ctx.typing():
+                source, title = await AudioSource.generate_source(ctx, search, loop=bot.loop)
+                voice_client.play(source)
+            
+            await ctx.message.add_reaction('▶️')
+            await ctx.send('**Now Playing:** {}'.format(title))
+        except:
+            await ctx.send("An error occured while trying to play")
 
 
     @commands.command(name='pause', help='Pause any song Vinyl is currently playing')

@@ -8,7 +8,7 @@ import functools
 class AudioSource(discord.PCMVolumeTransformer):
 
     YTDL_FORMAT_OPTIONS = {
-        'format': 'bestaudio/best',
+        'format': 'bestaudio',
         'extractaudio': True,
         'audioformat': 'mp3',
         'restrictfilenames': True,
@@ -22,18 +22,23 @@ class AudioSource(discord.PCMVolumeTransformer):
         'source_address': '0.0.0.0' 
     }
 
+    FFMPEG_OPTIONS = {
+    'options': '-vn',
+}
+
     ytdl = yt_dlp.YoutubeDL(YTDL_FORMAT_OPTIONS)
 
-    def __init__(self, source, *, data, volume=0.5):
+    def __init__(self, ctx, source, *, data, volume=0.5):
         super().__init__(source, volume)
+        
         self.data = data
         self.title = data.get('title')
         self.url = ""
 
     @classmethod
-    async def from_url(cls, search, *, loop=None, stream=False):
+    async def generate_source(cls, ctx, search, *, loop=None, stream=False):
         loop = loop or asyncio.get_event_loop()
-        partial =  functools.partial(cls.ytdl.extract_info, search, download=False)
+        partial =  functools.partial(cls.ytdl.extract_info, search, download=False, process=False)
         data = await loop.run_in_executor(None, partial)
 
         #process once to get entries from search
@@ -50,7 +55,7 @@ class AudioSource(discord.PCMVolumeTransformer):
                     raise Exception("No result that matches '{}'".format(search))
 
         url = processed_data['webpage_url']
-        partial = functools.partial(cls.ytdl.extract_info, url, download=True)
+        partial = functools.partial(cls.ytdl.extract_info, url, download=False)
         data = await loop.run_in_executor(None, partial)
 
         #process again for first entry in search
@@ -64,8 +69,10 @@ class AudioSource(discord.PCMVolumeTransformer):
         else:
             entry_data = data
 
-        if processed_data is None:
+        if entry_data is None:
                     raise Exception("No result that matches '{}'".format(search))
 
-        filename = processed_data['title'] if stream else cls.ytdl.prepare_filename(processed_data)
-        return filename, processed_data['title']
+        #filename = processed_data['title'] if stream else cls.ytdl.prepare_filename(processed_data)
+        #return filename, processed_data['title']
+
+        return cls(ctx, discord.FFmpegPCMAudio(entry_data['url'], **cls.FFMPEG_OPTIONS), data=entry_data), entry_data['title']
