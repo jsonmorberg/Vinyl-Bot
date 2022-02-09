@@ -36,7 +36,7 @@ class AudioSource(discord.PCMVolumeTransformer):
         self.url = ""
 
     @classmethod
-    async def generate_source(cls, ctx, search, *, loop=None, stream=False):
+    async def generate_source(cls, ctx, search, *, loop=None):
         loop = loop or asyncio.get_event_loop()
         partial =  functools.partial(cls.ytdl.extract_info, search, download=False, process=False)
         data = await loop.run_in_executor(None, partial)
