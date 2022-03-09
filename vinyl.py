@@ -57,19 +57,20 @@ class Vinyl(commands.Cog):
             
     @commands.command(name='play', aliases=['p'], help="Play")
     async def _play(self, ctx, *, search):
-        #try:
-        server = ctx.message.guild
-        voice_client = server.voice_client
+        if not ctx.audio_player.voice_client:
+            await ctx.invoke(self._join)
 
         async with ctx.typing():
-            source, title = await AudioSource.generate_source(ctx, search, loop=bot.loop)
-            voice_client.play(source)
-        
-        await ctx.message.add_reaction('▶️')
-        await ctx.send('**Now Playing:** {}'.format(title))
-        #except:
-           #await ctx.send("An error occured while trying to play")
 
+            try:
+                source = await AudioSource.generate_source(ctx, search, loop=self.bot.loop)
+            except:
+                await ctx.send("An error occured while trying to play")
+            else:
+                await ctx.audio_player.queue.put(source)
+                await ctx.send('**Queued:**  {}'.format(source.title))
+
+        await ctx.message.add_reaction('▶️')
 
     @commands.command(name='pause', help='Pause any song Vinyl is currently playing')
     async def _pause(self, ctx):
