@@ -2,6 +2,7 @@
 import os
 import discord
 from audio_source import AudioSource
+from audio_controller import AudioController
 import yt_dlp
 from dotenv import load_dotenv
 from discord.ext import commands
@@ -17,24 +18,37 @@ class Vinyl(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    def get_audio_player(self, ctx):
+        return AudioController(self.bot, ctx)
+
+    async def cog_before_invoke(self, ctx):
+        ctx.audio_player = self.get_audio_player(ctx)
+
+    async def cog_command_error(self, ctx, error):
+        await ctx.send('An error occurred: {}'.format(str(error)))
+
     @commands.command(name='join', aliases=['j'], help='Ask Vinyl to join your voice channel')
-    async def _join(self, ctx):
-        if not ctx.message.author.voice:
-            await ctx.send("{} is not connected to a voice channel".format(ctx.message.author.name))
+    async def _join(self, ctx, *, channel: discord.VoiceChannel=None):
+        if not channel and not ctx.author.voice.channel:
+            await ctx.send("{} is not connected to a voice channel".format(ctx.author.name))
             return
-        else:
-            channel = ctx.message.author.voice.channel
+        
+        channel = channel or ctx.author.voice.channel
+        if ctx.audio_player.voice_client:
+            await ctx.audio_player.voice_client.move_to(channel)
+            return
+
         await ctx.message.add_reaction('☑️')
-        await channel.connect()
+        ctx.audio_player.voice_client = await channel.connect()
         
     @commands.command(name='leave', aliases=['l'], help='Make Vinyl leave your voice channel')
     async def _leave(self, ctx):
-        voice_client = ctx.message.guild.voice_client
-        if voice_client is not None:
-            await voice_client.disconnect()
-            await ctx.message.add_reaction('☑️')
-        else:
+        if not ctx.audio_player.voice_client:
             await ctx.send("Vinyl is not connected to a voice channel")
+        else:
+            await ctx.message.add_reaction('☑️')
+            await ctx.audio_player.stop()
+            
 
     @commands.command(name='play', aliases=['p'], help="Play")
     async def _play(self, ctx, *, search):
