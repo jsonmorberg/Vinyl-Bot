@@ -1,6 +1,7 @@
 # vinyl.py
 import os
 import discord
+from discord import voice_client
 from audio_source import AudioSource
 from audio_controller import AudioController
 import yt_dlp
@@ -54,6 +55,7 @@ class Vinyl(commands.Cog):
         else:
             await ctx.message.add_reaction('☑️')
             await ctx.audio_player.stop()
+            del self.audio_player[ctx.guild.id]
             
     @commands.command(name='play', aliases=['p'], help="Play")
     async def _play(self, ctx, *, search):
@@ -67,46 +69,48 @@ class Vinyl(commands.Cog):
             except:
                 await ctx.send("An error occured while trying to play")
             else:
+                if(ctx.audio_player.voice_client.is_playing()):
+                    await ctx.send('**Queued:**  {}'.format(source.title))
                 await ctx.audio_player.queue.put(source)
-                await ctx.send('**Queued:**  {}'.format(source.title))
+                
 
         await ctx.message.add_reaction('▶️')
 
-    @commands.command(name='pause', help='Pause any song Vinyl is currently playing')
-    async def _pause(self, ctx):
-        voice_client = ctx.message.guild.voice_client
+    @commands.command(name='skip', aliases=['s'], help="Skip the song currently playing")
+    async def _skip(self, ctx):
+        voice_client = ctx.audio_player.voice_client
 
         if voice_client is None:
-            await ctx.sent("Vinyl is not connected to a voice channel currently")
+            await ctx.send("Vinyl is not connected to a voice channel currently")
         elif voice_client.is_playing():
-            voice_client.pause()
+            await ctx.message.add_reaction('⏭️')
+            ctx.audio_player.skip()
+        else:
+            await ctx.send("Vinyl isn't playing anything")
+        
+    @commands.command(name='pause', help='Pause any song Vinyl is currently playing')
+    async def _pause(self, ctx):
+        voice_client = ctx.audio_player.voice_client
+
+        if voice_client is None:
+            await ctx.send("Vinyl is not connected to a voice channel currently")
+        elif voice_client.is_playing():
             await ctx.message.add_reaction('⏸️')
+            voice_client.pause()            
         else:
             await ctx.send("Vinyl isn't playing anything")
 
     @commands.command(name='resume', help='Resume a paused song')
     async def _resume(self, ctx):
-        voice_client = ctx.message.guild.voice_client
+        voice_client = ctx.audio_player.voice_client
         
         if voice_client is None:
             await ctx.sent("Vinyl is not connected to a voice channel currently")
         elif voice_client.is_paused():
-            voice_client.resume()
             await ctx.message.add_reaction('▶️')
+            voice_client.resume()
         else:
             await ctx.send("Vinyl isn't paused currently")
-
-    @commands.command(name='stop', aliases=['s'], help='Stop any song Vinyl is currently playing')
-    async def _stop(self, ctx):
-        voice_client = ctx.message.guild.voice_client
-        
-        if voice_client is None:
-            await ctx.sent("Vinyl is not connected to a voice channel currently")
-        elif voice_client.is_playing():
-            voice_client.stop()
-            await ctx.message.add_reaction('⏹️')
-        else:
-            await ctx.send("Vinyl isn't playing anything")
 
 # Set discord intents to all for now
 intents = discord.Intents().all()

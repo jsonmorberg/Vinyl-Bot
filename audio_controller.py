@@ -20,18 +20,13 @@ class AudioController:
     async def audio_player(self):
         while True:
             self.event.clear()
+            self.source = await self.queue.get()
 
-            try:
-                async with timeout(180):
-                    self.source = await self.queue.get()
-
-            except asyncio.TimeoutError:
-                self.bot.loop.create_task(self.stop())
-                return
-
-            self.voice_client.play(self.source, after=self.next_song)
-            await self.source.channel.send('**Now Playing:** {}'.format(self.source.title))
+            await self._ctx.send('**Now Playing:** {}'.format(self.source.title))
+            self.voice_client.play(self.source, after=self.unlock_player)
+            
             await self.event.wait()
+            
     
     async def stop(self):
         while(not self.queue.empty()):
@@ -41,12 +36,12 @@ class AudioController:
             await self.voice_client.disconnect()
             self.voice_client = None
     
-    def next_song(self, error=None):
+    def unlock_player(self, error=None):
         if error:
             raise AudioControllerError(str(error))
         
         self.event.set()
     
-    def skip_song(self):
-        if self.voice and self.source:
+    def skip(self):
+        if self.voice_client and self.source:
             self.voice_client.stop()
