@@ -72,4 +72,4 @@ class AudioSource(discord.PCMVolumeTransformer):
         if entry_data is None:
                     raise Exception("No result that matches '{}'".format(search))
 
-        return cls(ctx, discord.FFmpegPCMAudio(entry_data['url'], **cls.FFMPEG_OPTIONS), data=entry_data), entry_data['title']
+        return cls(ctx, discord.FFmpegPCMAudio(entry_data['url'], **cls.FFMPEG_OPTIONS), data=entry_data)
