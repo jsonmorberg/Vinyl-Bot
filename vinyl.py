@@ -55,7 +55,7 @@ class Vinyl(commands.Cog):
         else:
             await ctx.message.add_reaction('☑️')
             await ctx.audio_player.stop()
-            del self.audio_player[ctx.guild.id]
+            del self.audio_players[ctx.guild.id]
             
     @commands.command(name='play', aliases=['p'], help="Play")
     async def _play(self, ctx, *, search):
