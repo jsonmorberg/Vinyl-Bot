@@ -17,9 +17,15 @@ yt_dlp.utils.bug_reports_message = lambda: ''
 class Vinyl(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.audio_players = {}
 
     def get_audio_player(self, ctx):
-        return AudioController(self.bot, ctx)
+        audio_player = self.audio_players.get(ctx.guild.id)
+        if not audio_player:
+            audio_player = AudioController(self.bot, ctx)
+            self.audio_players[ctx.guild.id] = audio_player
+        
+        return audio_player
 
     async def cog_before_invoke(self, ctx):
         ctx.audio_player = self.get_audio_player(ctx)
@@ -49,7 +55,6 @@ class Vinyl(commands.Cog):
             await ctx.message.add_reaction('☑️')
             await ctx.audio_player.stop()
             
-
     @commands.command(name='play', aliases=['p'], help="Play")
     async def _play(self, ctx, *, search):
         #try:
